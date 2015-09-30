@@ -70,9 +70,7 @@ Setup your kubernetes master IP :
 
 ### Kubedash
 
-    $ kubectl -s $K8S_MASTER:8080 create -f kubedash/kube-ui-rc.yaml --namespace=kube-system
-    $ kubectl -s $K8S_MASTER:8080 create -f -f kubedash/kube-ui-svc.yaml --namespace=kube-system
-
+    $ kubectl -s $K8S_MASTER:8080 create -f kubedash/kube-config.yaml --namespace=kube-system
 
 
 
