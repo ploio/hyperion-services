@@ -2,4 +2,4 @@
 *~
 
 # Docker
-./docker-machine
+docker-compose
