@@ -7,7 +7,16 @@
 
 You could use [Docker compose][] to setup a local cluster :
 
-		$ docker-composer up
+		$ docker-composer up -d
+		Creating hyperionservices_etcd_1
+		Creating hyperionservices_apiserver_1
+		Creating hyperionservices_kubelet_1
+		Creating hyperionservices_controller_1
+		Creating hyperionservices_proxy_1
+		Creating hyperionservices_scheduler_1
+
+		$ docker-compose ps
+
 
 Then, configure `kubectl`: 
 
@@ -16,7 +25,9 @@ Then, configure `kubectl`:
 
 Check cluster :
 
-		$ kubectl get nodes
+		$ kubectl version
+		Client Version: version.Info{Major:"1", Minor:"0", GitVersion:"v1.0.3", GitCommit:"61c6ac5f350253a4dc002aee97b7db7ff01ee4ca", GitTreeState:"clean"}
+		Server Version: version.Info{Major:"1", Minor:"1+", GitVersion:"v1.1.1-beta.1", GitCommit:"d3071cbd760a8f8650ff379398c59e71ffcf7085", GitTreeState:"clean"}
 
 Creates namespaces :
 
@@ -26,7 +37,6 @@ Creates namespaces :
 
         $ kubectl get namespaces
         NAME          LABELS             STATUS
-        admin         name=admin         Active
         default       <none>             Active
         development   name=development   Active
         kube-system   name=kube-system   Active
@@ -40,7 +50,7 @@ Services to be deployed to [Hyperion][]
 ### Kubernetes UI
 
     $ kubectl create -f kube-ui/kube-ui-rc.yaml --namespace=kube-system
-    $ kubectl create -f -f kube-ui/kube-ui-svc.yaml --namespace=kube-system
+    $ kubectl create -f kube-ui/kube-ui-svc.yaml --namespace=kube-system
 
     $ kubectl get services --namespace=kube-system
     NAME      LABELS                                                                         SELECTOR          IP(S)           PORT(S)
@@ -93,6 +103,30 @@ Services to be deployed to [Hyperion][]
     NAME                                         READY     STATUS    RESTARTS   AGE
     monitoring-influx-grafana-controller-hc0uh   2/2       Running   0          4m
 
+### Heapster
+
+	$ kubectl create -f heapster/heapster-service.yaml --namespace=kube-system
+	$ kubectl create -f heapster/heapster-controller.yaml --namespace=kube-system
+	
+	$ kubectl get pods --namespace=kube-system
+	NAME               READY     STATUS    RESTARTS   AGE
+	heapster-uf1u6     1/1       Running   0          3m
+	kube-ui-v1-5gz0m   1/1       Running   0          40m
+	
+	$ kubectl get rc --namespace=kube-system                                                                                   
+	CONTROLLER   CONTAINER(S)   IMAGE(S)                                SELECTOR                      REPLICAS
+	heapster     heapster       kubernetes/heapster:canary              k8s-app=heapster,version=v6   1
+	kube-ui-v1   kube-ui        gcr.io/google_containers/kube-ui:v1.1   k8s-app=kube-ui,version=v1    1
+	
+	$ kubectl get services --namespace=kube-system                                                                             
+	NAME       LABELS                                                                         SELECTOR           IP(S)           PORT(S)
+	heapster   kubernetes.io/cluster-service=true,kubernetes.io/name=Heapster                 k8s-app=heapster   172.17.17.16    80/TCP
+	kube-ui    k8s-app=kube-ui,kubernetes.io/cluster-service=true,kubernetes.io/name=KubeUI   k8s-app=kube-ui    172.17.17.138   80/TCP
+
+	$ kubectl cluster-info
+	Kubernetes master is running at http://localhost:8080
+	Heapster is running at http://localhost:8080/api/v1/proxy/namespaces/kube-system/services/heapster
+	KubeUI is running at http://localhost:8080/api/v1/proxy/namespaces/kube-system/services/kube-ui
 
 ### Kubedash
 
